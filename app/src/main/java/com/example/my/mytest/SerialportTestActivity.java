@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.speedata.libutils.DataConversionUtils;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
@@ -23,8 +25,8 @@ public class SerialportTestActivity extends Activity {
     private Button bt2;
     private Button bt3;
 
-    private ReadThread mReadThread;
-    private Handler handler;
+//    private ReadThread mReadThread;
+    private Handler handler = new Handler();
     private byte[] temp1;
 //    private String temp1;
     public static final String SERIAL_TTYMT1 = "/dev/ttyMT1";
@@ -43,13 +45,16 @@ public class SerialportTestActivity extends Activity {
         bt2 = (Button) findViewById(R.id.bt2);
         bt3 = (Button) findViewById(R.id.bt3);
 
+
         mSerialPortSpd = new SerialPortSpd();
         fd = mSerialPortSpd.getFd();
+
 
 //        发送数据
         bt1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fd = mSerialPortSpd.getFd();
                 String msg = et1.getText().toString();
                 int len = send(msg);
                 Toast.makeText(SerialportTestActivity.this,"发送信息"+len,Toast.LENGTH_SHORT).show();
@@ -62,6 +67,9 @@ public class SerialportTestActivity extends Activity {
                 try {
                     mSerialPortSpd.OpenSerial(SERIAL_TTYMT1,9600);
                     Toast.makeText(SerialportTestActivity.this,"打开串口",Toast.LENGTH_SHORT).show();
+//                    mReadThread = new ReadThread();
+//                    mReadThread.start();
+                    handler.post(runnable);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -71,28 +79,52 @@ public class SerialportTestActivity extends Activity {
         bt3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSerialPortSpd.CloseSerial(fd);
+//                mSerialPortSpd.CloseSerial(fd);
+//                handler.removeCallbacks(runnable);
                 finish();
             }
         });
-        mReadThread = new ReadThread();
-        mReadThread.start();
+
+
+
 
 //        获取串口信息
-        handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                    super.handleMessage(msg);
-                    Toast.makeText(SerialportTestActivity.this,msg.what+" shou",Toast.LENGTH_SHORT).show();
-                    String temp2 = String.valueOf(msg.obj);
-                    tv1.setText(temp2+"\n");
-            }
-        };
+//        handler = new Handler(){
+//            @Override
+//            public void handleMessage(Message msg) {
+//                    super.handleMessage(msg);
+//                    Toast.makeText(SerialportTestActivity.this,msg.what+" shou",Toast.LENGTH_SHORT).show();
+//                    String temp2 = String.valueOf(msg.obj);
+//                    tv1.setText(temp2+"\n");
+//            }
+//        };
+
 
     }
 
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                fd = mSerialPortSpd.getFd();
+                temp1 = mSerialPortSpd.ReadSerial(fd, 1024);
+
+                if (temp1!=null){
+                    Toast.makeText(SerialportTestActivity.this,"获取成功",Toast.LENGTH_SHORT).show();
+//                    String temp2 = String.valueOf(temp1);
+                    tv1.append(DataConversionUtils.byteArrayToString(temp1) +"\n");
+
+                }
+                handler.post(this);
+
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
     public int send (String str){
-        byte[] s =str.getBytes();
+        byte[] s = DataConversionUtils.HexString2Bytes(str);
         int len = mSerialPortSpd.WriteSerialByte(fd,s);
         return len;
     }
@@ -110,28 +142,30 @@ public class SerialportTestActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mSerialPortSpd.CloseSerial(fd);
+        handler.removeCallbacks(runnable);
     }
 
-    private class ReadThread extends Thread{
-        @Override
-        public void run() {
-            super.run();
-            try {
-                fd = mSerialPortSpd.getFd();
-                temp1 = mSerialPortSpd.ReadSerial(fd,1024);
-
-                if (temp1 != null) {
-                    Message msg = new Message();
-                    msg.what = 1;
-                    msg.obj = temp1;
-                    handler.sendMessage(msg);
-
-                }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    private class ReadThread extends Thread{
+//        @Override
+//        public void run() {
+//            super.run();
+//            try {
+//                fd = mSerialPortSpd.getFd();
+//                temp1 = mSerialPortSpd.ReadSerial(fd,1024);
+//
+//                if (temp1 != null) {
+//                    Message msg = new Message();
+//                    msg.what = 1;
+//                    msg.obj = temp1;
+//                    handler.sendMessage(msg);
+//
+//                }
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 }
 
 
