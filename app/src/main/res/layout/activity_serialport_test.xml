@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
 
-    <TextView
+    <EditText
         android:id="@+id/tv1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
@@ -17,5 +17,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="send"/>
+    <Button
+        android:id="@+id/bt2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="open"/>
+    <Button
+        android:id="@+id/bt3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="close"/>
 
 </LinearLayout>
