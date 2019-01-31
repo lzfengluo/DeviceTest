@@ -54,6 +54,7 @@ public class SerialportTestActivity extends Activity {
         bt1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //打开串口后，要先获取句柄，才可以写入成功，串口才能发送信息
                 fd = mSerialPortSpd.getFd();
                 String msg = et1.getText().toString();
                 int len = send(msg);
@@ -106,11 +107,12 @@ public class SerialportTestActivity extends Activity {
         @Override
         public void run() {
             try {
+                //调用线程，循环读取串口发送的消息
                 fd = mSerialPortSpd.getFd();
                 temp1 = mSerialPortSpd.ReadSerial(fd, 1024);
 
                 if (temp1!=null){
-                    Toast.makeText(SerialportTestActivity.this,"获取成功",Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(SerialportTestActivity.this,"获取成功",Toast.LENGTH_SHORT).show();
 //                    String temp2 = String.valueOf(temp1);
                     tv1.append(DataConversionUtils.byteArrayToString(temp1) +"\n");
 
